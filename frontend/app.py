@@ -56,9 +56,6 @@ if st.button("Calculate"):
             st.write(f"Recommended AC: {result['recommended_ac']}")
             st.write(f"Estimated Cooling Time: {result['cooling_time']} minutes")
 
-            st.markdown("## 🔍 Comparison Result")
-            st.success(result["comparison_result"])
-
             st.markdown("## 🔥 Best Placement Recommendation")
             st.success(f"Optimal Placement: {result['best_placement']}")
 
