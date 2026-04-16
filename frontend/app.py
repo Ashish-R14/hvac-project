@@ -1,37 +1,61 @@
 import requests
 import streamlit as st
 
-st.title("TAN INNOVATIONS LLP. PRESENTS")
-st.title("HVAC Smart Recommendation System Chatbot for residential houses.")
-st.header("Enter Room Details-")
+# ---------------- CONFIG ----------------
+st.set_page_config(
+    page_title="HVAC Smart System",
+    layout="wide"
+)
 
-# Inputs
-length = st.number_input("Room Length (ft)", min_value=1.0)
-width = st.number_input("Room Width (ft)", min_value=1.0)
-height = st.number_input("Room Height (ft)", min_value=1.0)
+API_URL = "https://hvac-project.onrender.com/calculate"
 
-people = st.number_input("Number of People", min_value=0)
+# ---------------- HEADER ----------------
+st.title("🏢 TAN INNOVATIONS LLP.")
+st.subheader("HVAC Smart Recommendation System")
 
-windows = st.number_input("Number of Windows", min_value=0)
+st.markdown("---")
 
-sunlight = st.selectbox("Sunlight Exposure", ["Low", "Medium", "High"])
+# ---------------- INPUT SECTION ----------------
+st.header("📥 Enter Room Details")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    length = st.number_input("Room Length (ft)", min_value=1.0)
+    width = st.number_input("Room Width (ft)", min_value=1.0)
+
+with col2:
+    height = st.number_input("Room Height (ft)", min_value=1.0)
+    people = st.number_input("Number of People", min_value=0)
+
+with col3:
+    windows = st.number_input("Number of Windows", min_value=0)
+    sunlight = st.selectbox("Sunlight Exposure", ["Low", "Medium", "High"])
 
 room_type = st.selectbox("Room Type", ["Bedroom", "Living Room", "Office"])
 
-placement_option = st.selectbox(
-    "Choose AC Placement Wall",
-    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"]
-)
+st.markdown("---")
 
-placement_option_2 = st.selectbox(
-    "Compare with another placement",
-    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
-    key="placement2"
-)
+# ---------------- PLACEMENT ----------------
+st.header("📍 Placement Selection")
 
-if st.button("Calculate"):
+col4, col5 = st.columns(2)
 
-    url = "https://hvac-project.onrender.com/calculate"
+with col4:
+    placement_option = st.selectbox(
+        "Primary Placement",
+        ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"]
+    )
+
+with col5:
+    placement_option_2 = st.selectbox(
+        "Compare With",
+        ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
+        key="placement2"
+    )
+
+# ---------------- CALCULATE ----------------
+if st.button("🚀 Calculate"):
 
     data = {
         "length": length,
@@ -40,35 +64,72 @@ if st.button("Calculate"):
         "people": people,
         "windows": windows,
         "sunlight": sunlight,
-        "room_type": room_type
+        "room_type": room_type,
+        "placement_1": placement_option,
+        "placement_2": placement_option_2
     }
 
     try:
-        response = requests.post(url, json=data)
+        response = requests.post(API_URL, json=data, timeout=60)
 
         if response.status_code != 200:
-            st.error("Backend error. Check API.")
-        else:
-            result = response.json()
+            st.error(f"❌ Backend Error: {response.text}")
+            st.stop()
 
-            st.subheader("Results")
-            st.write(f"Estimated Cooling Load: {result['btu']} BTU")
-            st.write(f"Recommended AC: {result['recommended_ac']}")
-            st.write(f"Estimated Cooling Time: {result['cooling_time']} minutes")
+        result = response.json()
 
-            st.markdown("## 🔥 Best Placement Recommendation")
-            st.success(f"Optimal Placement: {result['best_placement']}")
+        # ---------------- RESULTS ----------------
+        st.markdown("---")
+        st.header("📊 Results")
 
-            st.write(f"Score: {result['score']}/3")
+        colA, colB, colC = st.columns(3)
 
-            st.write("Why this works:")
-            for f in result["feedback"]:
+        with colA:
+            st.metric("Cooling Load", f"{round(result['btu'],2)} BTU")
+
+        with colB:
+            st.metric("Recommended AC", result["recommended_ac"])
+
+        with colC:
+            st.metric("Cooling Time", f"{result['cooling_time']} min")
+
+        # ---------------- COMPARISON ----------------
+        st.markdown("---")
+        st.header("🔍 Placement Comparison")
+
+        p1 = result["comparison"]["placement_1"]
+        p2 = result["comparison"]["placement_2"]
+
+        col6, col7 = st.columns(2)
+
+        with col6:
+            st.subheader(f"📌 {p1['name']}")
+            st.write(f"Score: {p1['score']}")
+            st.write(p1["verdict"])
+            for f in p1["feedback"]:
                 st.write(f"- {f}")
 
+        with col7:
+            st.subheader(f"📌 {p2['name']}")
+            st.write(f"Score: {p2['score']}")
+            st.write(p2["verdict"])
+            for f in p2["feedback"]:
+                st.write(f"- {f}")
+
+        # ---------------- BEST PLACEMENT ----------------
+        st.markdown("---")
+        st.header("🔥 Best Placement Recommendation")
+
+        st.success(f"Optimal Placement: {result['best_placement']}")
+
+        st.write(f"Score: {result['score']}/3")
+
+        st.write("Why this works:")
+        for f in result["feedback"]:
+            st.write(f"- {f}")
+
+    except requests.exceptions.Timeout:
+        st.error("⏱️ Server timeout. Try again.")
+
     except Exception as e:
-        st.error(f"Error connecting to API: {e}")
-   
-    
-
-
-   
+        st.error(f"⚠️ Error connecting to API: {e}")

@@ -1,16 +1,18 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-from hvac_engine import (
+from backend.hvac_engine import (
     calculate_btu,
     recommend_ac,
     estimate_cooling_time,
-    find_best_placement
+    find_best_placement,
+    evaluate_placement
 )
 
 app = FastAPI()
 
-# Input model
+
+# ---------------- INPUT MODEL ----------------
 class RoomInput(BaseModel):
     length: float
     width: float
@@ -19,15 +21,21 @@ class RoomInput(BaseModel):
     windows: int
     sunlight: str
     room_type: str
+    placement_1: str
+    placement_2: str
 
 
+# ---------------- HEALTH CHECK ----------------
 @app.get("/")
 def home():
     return {"message": "HVAC API is running"}
 
 
+# ---------------- MAIN API ----------------
 @app.post("/calculate")
 def calculate(data: RoomInput):
+
+    # 🔹 Core Calculations
     btu = calculate_btu(
         data.length,
         data.width,
@@ -40,15 +48,44 @@ def calculate(data: RoomInput):
 
     ac = recommend_ac(btu)
     area = data.length * data.width
-    time = estimate_cooling_time(btu, area)
+    cooling_time = estimate_cooling_time(btu, area)
 
-    best_placement, score, feedback = find_best_placement(data.length, data.width)
+    # 🔹 Comparison Logic
+    score1, verdict1, feedback1 = evaluate_placement(
+        data.length, data.width, data.placement_1
+    )
 
+    score2, verdict2, feedback2 = evaluate_placement(
+        data.length, data.width, data.placement_2
+    )
+
+    # 🔹 Best Placement
+    best_placement, best_score, best_feedback = find_best_placement(
+        data.length, data.width
+    )
+
+    # 🔹 Final Response
     return {
         "btu": round(btu, 2),
         "recommended_ac": ac,
-        "cooling_time": time,
+        "cooling_time": cooling_time,
+
+        "comparison": {
+            "placement_1": {
+                "name": data.placement_1,
+                "score": score1,
+                "verdict": verdict1,
+                "feedback": feedback1
+            },
+            "placement_2": {
+                "name": data.placement_2,
+                "score": score2,
+                "verdict": verdict2,
+                "feedback": feedback2
+            }
+        },
+
         "best_placement": best_placement,
-        "score": score,
-        "why": feedback
+        "score": best_score,
+        "feedback": best_feedback
     }
