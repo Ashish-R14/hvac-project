@@ -322,15 +322,11 @@ if st.session_state.get("calculated"):
     result = st.session_state["result"]
     data = st.session_state["data"]
 
-    # UI controls
-    speed = st.slider(
-        "Simulation Speed",
-        0.1, 1.0, 0.5,
-        key="sim_speed"
-    )
+    # Run only once after calculation
+    if "simulation_ran" not in st.session_state:
+        st.session_state["simulation_ran"] = False
 
-    # Button INSIDE block
-    if st.button("▶ Run Simulation"):
+    if not st.session_state["simulation_ran"]:
 
         length = data["length"]
         width = data["width"]
@@ -342,4 +338,7 @@ if st.session_state.get("calculated"):
 
         for fig in frames:
             placeholder.pyplot(fig)
-            time.sleep(speed)
+            time.sleep(0.4)   # 🔥 smooth fixed speed
+
+        # mark simulation done
+        st.session_state["simulation_ran"] = True
