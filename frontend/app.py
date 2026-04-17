@@ -313,21 +313,23 @@ if st.session_state.get("calculated"):
     result = st.session_state["result"]
     data = st.session_state["data"]
 
-     # ---------------- SIMULATION ----------------
-    st.markdown("---")
-    st.header("🎬 Cooling Simulation")
+# ---------------- SIMULATION ----------------
+st.markdown("---")
+st.header("🎬 Cooling Simulation")
 
-    speed = st.slider("Simulation Speed", 0.1, 1.0, 0.5)
+if st.session_state.get("calculated"):
 
-    if st.session_state.get("calculated"):
+    result = st.session_state["result"]
+    data = st.session_state["data"]
 
-     result = st.session_state["result"]
-     data = st.session_state["data"]
+    # UI controls
+    speed = st.slider(
+        "Simulation Speed",
+        0.1, 1.0, 0.5,
+        key="sim_speed"
+    )
 
-    st.header("🎬 Cooling Simulation")
-
-    speed = st.slider("Simulation Speed", 0.1, 1.0, 0.5)
-
+    # Button INSIDE block
     if st.button("▶ Run Simulation"):
 
         length = data["length"]
