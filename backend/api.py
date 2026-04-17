@@ -23,6 +23,8 @@ class RoomInput(BaseModel):
     room_type: str
     placement_1: str
     placement_2: str
+    door_position: str
+    furniture_density: str
 
 
 # ---------------- HEALTH CHECK ----------------
@@ -52,11 +54,19 @@ def calculate(data: RoomInput):
 
     # 🔹 Comparison Logic
     score1, verdict1, feedback1 = evaluate_placement(
-        data.length, data.width, data.placement_1
+    data.length,
+    data.width,
+    data.placement_1,
+    data.door_position,
+    data.furniture_density
     )
 
     score2, verdict2, feedback2 = evaluate_placement(
-        data.length, data.width, data.placement_2
+    data.length,
+    data.width,
+    data.placement_2,
+    data.door_position,
+    data.furniture_density
     )
 
     # 🔹 Best Placement

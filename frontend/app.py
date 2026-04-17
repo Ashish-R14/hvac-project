@@ -72,6 +72,16 @@ room_type = st.selectbox("Room Type", ["Bedroom", "Living Room", "Office"])
 
 st.markdown("---")
 
+door_position = st.selectbox(
+    "Door Position",
+    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"]
+)
+
+furniture_density = st.selectbox(
+    "Furniture Density",
+    ["Low", "Medium", "High"]
+)
+
 # ---------------- PLACEMENT ----------------
 st.header("📍 Placement Selection")
 
@@ -109,7 +119,9 @@ if st.button("🚀 Calculate"):
         "sunlight": sunlight,
         "room_type": room_type,
         "placement_1": placement_option,
-        "placement_2": placement_option_2
+        "placement_2": placement_option_2,
+        "door_position": door_position,
+        "furniture_density": furniture_density
     }
 
     # ---------------- INSTANT PREVIEW ----------------
@@ -243,3 +255,13 @@ with colV2:
 
     for f in result["feedback"]:
         st.write(f"- {f}")
+
+door_position = st.selectbox(
+    "Door Position",
+    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"]
+)
+
+furniture_density = st.selectbox(
+    "Furniture Density",
+    ["Low", "Medium", "High"]
+)

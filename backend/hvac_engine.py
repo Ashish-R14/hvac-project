@@ -45,7 +45,13 @@ def estimate_cooling_time(btu, area):
 
 
 # ================= PLACEMENT EVALUATION =================
-def evaluate_placement(length, width, placement):
+def evaluate_placement(
+    length,
+    width,
+    placement,
+    door_position=None,
+    furniture_density="Low"
+):
     score = 0
     feedback = []
 
@@ -61,30 +67,44 @@ def evaluate_placement(length, width, placement):
     else:
         feedback.append("Warning: Airflow may not cover entire room")
 
-    # Rule 2: Central distribution assumption
+    # Rule 2: Central distribution advantage
     if placement in ["Top Wall", "Bottom Wall"]:
         score += 1
         feedback.append("Better: Central air distribution")
 
-    # Rule 3: Side placement penalty
+    # Rule 3: Side placement note
     if placement in ["Left Wall", "Right Wall"]:
         feedback.append("Note: Side placement can create uneven cooling")
 
-    # Normalize score (0–3 scale)
-    score = min(score, 3)
+    # ---------------- REAL-WORLD FACTORS ----------------
 
-    # Verdict
-    if score == 3:
+    # Door penalty (air leakage)
+    if door_position and placement == door_position:
+        score -= 1
+        feedback.append("Air loss due to door proximity")
+
+    # Furniture impact
+    if furniture_density == "High":
+        score -= 0.5
+        feedback.append("Obstruction reduces airflow efficiency")
+    elif furniture_density == "Medium":
+        score -= 0.2
+        feedback.append("Moderate obstruction present")
+
+    # Clamp score between 0–3
+    score = max(0, min(score, 3))
+
+    # ---------------- VERDICT ----------------
+    if score >= 2.5:
         verdict = "✅ Optimal Placement"
-    elif score == 2:
+    elif score >= 2:
         verdict = "👍 Good Placement"
-    elif score == 1:
+    elif score >= 1:
         verdict = "⚠️ Moderate Placement"
     else:
         verdict = "❌ Poor Placement"
 
-    return score, verdict, feedback
-
+    return round(score, 2), verdict, feedback
 
 # ================= BEST PLACEMENT =================
 def find_best_placement(length, width):
