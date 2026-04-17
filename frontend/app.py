@@ -35,6 +35,31 @@ def call_api(data):
 
     return None
 
+def generate_explanation(p1, p2, winner):
+    explanation = ""
+
+    if winner == "Both are equal":
+        explanation = "Both placements provide similar airflow distribution. The choice depends on furniture layout and user preference."
+
+    else:
+        better = p1 if p1["name"] == winner else p2
+        worse = p2 if better == p1 else p1
+
+        explanation = f"""
+        The **{winner}** performs better due to:
+
+        • Higher efficiency score ({better['score']} vs {worse['score']})  
+        • Better airflow alignment with room dimensions  
+        • Reduced cooling loss and improved air distribution  
+
+        In contrast, **{worse['name']}** shows:
+        • Lower airflow coverage  
+        • Potential uneven cooling zones  
+
+        👉 This results in faster cooling and better comfort.
+        """
+
+    return explanation
 # ---------------- SESSION ----------------
 if "cache" not in st.session_state:
     st.session_state.cache = {}
@@ -204,6 +229,8 @@ if st.button("🚀 Calculate"):
     names = [p1["name"], p2["name"]]
     scores = [p1["score"], p2["score"]]
 
+    confidence = round((max(scores) / 3) * 100)
+
     if scores[0] > scores[1]:
         colors = ["green", "red"]
         winner = p1["name"]
@@ -252,6 +279,19 @@ if st.button("🚀 Calculate"):
         st.info("⚖️ Both placements are equal")
 
     st.metric("🏆 Best Placement", winner)
+
+    st.markdown("---")
+st.header("🧠 Smart Decision Summary")
+
+colD1, colD2 = st.columns(2)
+
+with colD1:
+    st.metric("🏆 Recommended Placement", winner)
+    st.metric("📊 Confidence Score", f"{confidence}%")
+
+with colD2:
+    explanation = generate_explanation(p1, p2, winner)
+    st.markdown(explanation)
 
     # ---------------- BEST ----------------
     st.markdown("---")
