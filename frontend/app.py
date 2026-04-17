@@ -185,6 +185,7 @@ if st.button("🚀 Calculate"):
         st.session_state["result"] = result
         st.session_state["data"] = data
         st.session_state["calculated"] = True
+        st.session_state["simulation_ran"] = False
         
         st.session_state.cache[cache_key] = result
 
@@ -315,30 +316,33 @@ if st.session_state.get("calculated"):
 
 # ---------------- SIMULATION ----------------
 st.markdown("---")
-st.header("🎬 Cooling Simulation")
+st.header("🎬 Cooling Simulation (Final Recommendation)")
 
 if st.session_state.get("calculated"):
 
     result = st.session_state["result"]
     data = st.session_state["data"]
 
-    # Run only once after calculation
-    if "simulation_ran" not in st.session_state:
-        st.session_state["simulation_ran"] = False
+    best_placement = result["best_placement"]
 
-    if not st.session_state["simulation_ran"]:
+    st.success(f"Simulating Best Placement: {best_placement}")
 
-        length = data["length"]
-        width = data["width"]
-        placement = data["placement_1"]
+    placeholder = st.empty()
 
-        frames = simulate_cooling(length, width, placement)
+    # Run simulation continuously but safely
+    if "run_sim" not in st.session_state:
+        st.session_state["run_sim"] = True
 
-        placeholder = st.empty()
+    frames = simulate_cooling(
+        data["length"],
+        data["width"],
+        best_placement
+    )
 
+    # 🔁 controlled continuous loop
+    for _ in range(10):   # NOT infinite (safe loop)
         for fig in frames:
+            if not st.session_state["run_sim"]:
+                break
             placeholder.pyplot(fig)
-            time.sleep(0.4)   # 🔥 smooth fixed speed
-
-        # mark simulation done
-        st.session_state["simulation_ran"] = True
+            time.sleep(0.4)
