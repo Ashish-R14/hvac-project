@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import time
 import hashlib
 from visualization import draw_room
+from visualization import simulate_cooling
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="HVAC Smart System", layout="wide")
@@ -268,6 +269,22 @@ if st.button("🚀 Calculate"):
     with colV2:
         st.subheader(f"📌 {placement_option_2}")
         st.pyplot(draw_room(length, width, placement_option_2))
+   
+    st.markdown("---")
+    st.header("🎬 Cooling Simulation")
+
+    speed = st.slider("Simulation Speed", 0.1, 1.0, 0.5)
+    st.info("Simulation shows cooling spread over time")
+    
+    if st.button("▶️ Run Simulation"):
+
+      frames = simulate_cooling(length, width, placement_option)
+
+      placeholder = st.empty()
+
+      for fig in frames:
+        placeholder.pyplot(fig)
+        time.sleep(speed)
 
     # ---------------- INSIGHT ----------------
     st.markdown("### 🧠 Insight")
