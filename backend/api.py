@@ -70,7 +70,7 @@ def calculate(data: RoomInput):
         "recommended_ac": ac,
         "cooling_time": cooling_time,
 
-        "comparison": {
+            "comparison": {
             "placement_1": {
                 "name": data.placement_1,
                 "score": score1,
