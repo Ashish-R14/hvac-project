@@ -122,30 +122,72 @@ if st.button("🚀 Calculate"):
         st.subheader("📊 Placement Comparison Graph")
        
         try:
-           p1 = result["comparison"]["placement_1"]
-           p2 = result["comparison"]["placement_2"]
+            p1 = result["comparison"]["placement_1"]
+            p2 = result["comparison"]["placement_2"]
+ 
+            names = [p1["name"], p2["name"]]
+            scores = [p1["score"], p2["score"]]
 
-            # Data for graph
-           names = [p1["name"], p2["name"]]
-           scores = [p1["score"], p2["score"]]
+    # Determine winner
+            if scores[0] > scores[1]:
+               colors = ["green", "red"]
+               winner = p1["name"]
+            elif scores[1] > scores[0]:
+                 colors = ["red", "green"]
+                 winner = p2["name"]
+            else:
+                 colors = ["gray", "gray"]
+                 winner = "Both are equal"
 
-           df = pd.DataFrame({
-           "Placement": names,
-           "Score": scores
-           })
+            df = pd.DataFrame({
+                "Placement": names,
+                "Score": scores
+                 })
 
-    # Plot
-           fig, ax = plt.subplots()
-           ax.bar(df["Placement"], df["Score"])
-           ax.set_xlabel("Placement")
-           ax.set_ylabel("Score")
-           ax.set_title("AC Placement Comparison")
+            fig, ax = plt.subplots()
 
-           st.pyplot(fig)
+            bars = ax.barh(df["Placement"], df["Score"], color=colors)
+
+    # Add value labels
+            for i, v in enumerate(scores):
+                ax.text(v + 0.05, i, str(v), va='center', fontweight='bold')
+
+                ax.set_xlim(0, 3)
+                ax.set_xlabel("Efficiency Score")
+                ax.set_title("AC Placement Performance Comparison")
+
+                st.pyplot(fig)
+
+    # 📌 Insight section (this is what makes it powerful)
+                st.markdown("### 🧠 Insight")
+
+            if winner != "Both are equal":
+                diff = abs(scores[0] - scores[1])
+                st.success(f"✅ **{winner} is the better placement by {diff} point(s)**")
+            else:
+                st.info("⚖️ Both placements perform equally. Choose based on room layout.")
+
+    # Show quick reasoning
+                st.markdown("### 🔍 Key Differences")
+
+                colA, colB = st.columns(2)
+
+            with colA:
+                st.markdown(f"**{p1['name']}**")
+            for f in p1["feedback"]:
+                st.write(f"• {f}")
+
+            with colB:
+                st.markdown(f"**{p2['name']}**")
+            for f in p2["feedback"]:
+                st.write(f"• {f}")
 
         except Exception as e:
-          st.warning("Graph could not be generated")       
-
+            st.warning("Graph could not be generated")       
+        st.metric(
+           label="🏆 Best Placement",
+           value=winner
+)
         # ---------------- BEST PLACEMENT ----------------
         st.markdown("---")
         st.header("🔥 Best Placement Recommendation")
