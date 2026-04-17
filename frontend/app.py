@@ -270,21 +270,27 @@ if st.button("🚀 Calculate"):
         st.subheader(f"📌 {placement_option_2}")
         st.pyplot(draw_room(length, width, placement_option_2))
    
+    # ---------------- SIMULATION ----------------
     st.markdown("---")
     st.header("🎬 Cooling Simulation")
 
     speed = st.slider("Simulation Speed", 0.1, 1.0, 0.5)
-    st.info("Simulation shows cooling spread over time")
-    
-    if st.button("▶️ Run Simulation"):
 
-      frames = simulate_cooling(length, width, placement_option)
+    if st.checkbox("▶️ Auto Run Simulation"):
 
-      placeholder = st.empty()
+     if length == 0 or width == 0:
+        st.warning("Please enter valid room dimensions")
+        st.stop()
 
-      for fig in frames:
-        placeholder.pyplot(fig)
-        time.sleep(speed)
+     with st.spinner("Running simulation..."):
+
+        frames = simulate_cooling(length, width, placement_option)
+
+        placeholder = st.empty()
+
+        for fig in frames:
+            placeholder.pyplot(fig)
+            time.sleep(speed)
 
     # ---------------- INSIGHT ----------------
     st.markdown("### 🧠 Insight")
