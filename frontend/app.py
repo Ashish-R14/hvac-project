@@ -90,7 +90,8 @@ col4, col5 = st.columns(2)
 with col4:
     placement_option = st.selectbox(
         "Primary Placement",
-        ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"]
+        ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
+        key="placement2"
     )
 
 with col5:
@@ -258,10 +259,12 @@ with colV2:
 
 door_position = st.selectbox(
     "Door Position",
-    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"]
+    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
+    key="door_position"
 )
 
 furniture_density = st.selectbox(
     "Furniture Density",
-    ["Low", "Medium", "High"]
+    ["Low", "Medium", "High"],
+    key="furniture_density"
 )
