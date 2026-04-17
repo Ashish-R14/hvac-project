@@ -136,7 +136,6 @@ with col5:
 
 # ---------------- BUTTON ----------------
 if st.button("🚀 Calculate"):
-
     now = time.time()
 
     if now - st.session_state.last_click < 5:
@@ -178,11 +177,15 @@ if st.button("🚀 Calculate"):
             progress.progress(i + 1)
 
         result = call_api(data)
-
+ 
         if result is None:
             st.error("🚫 Server busy. Try again.")
             st.stop()
-
+               
+        st.session_state["result"] = result
+        st.session_state["data"] = data
+        st.session_state["calculated"] = True
+        
         st.session_state.cache[cache_key] = result
 
     # ---------------- RESULTS ----------------
@@ -270,28 +273,7 @@ if st.button("🚀 Calculate"):
         st.subheader(f"📌 {placement_option_2}")
         st.pyplot(draw_room(length, width, placement_option_2))
    
-    # ---------------- SIMULATION ----------------
-    st.markdown("---")
-    st.header("🎬 Cooling Simulation")
-
-    speed = st.slider("Simulation Speed", 0.1, 1.0, 0.5)
-
-    if st.button("▶️ Run Simulation"):
-
-    # 👇 ADD DEBUG HERE
-       st.write("Simulation triggered")
-       st.write("Length:", length)
-       st.write("Width:", width)
-       st.write("Placement:", placement_option)
-
-       frames = simulate_cooling(length, width, placement_option)
-
-       placeholder = st.empty()
-
-       for fig in frames:
-        placeholder.pyplot(fig)
-        time.sleep(speed)
-
+   
     # ---------------- INSIGHT ----------------
     st.markdown("### 🧠 Insight")
 
@@ -325,3 +307,37 @@ if st.button("🚀 Calculate"):
 
     for f in result["feedback"]:
         st.write(f"- {f}")
+
+if st.session_state.get("calculated"):
+
+    result = st.session_state["result"]
+    data = st.session_state["data"]
+
+     # ---------------- SIMULATION ----------------
+    st.markdown("---")
+    st.header("🎬 Cooling Simulation")
+
+    speed = st.slider("Simulation Speed", 0.1, 1.0, 0.5)
+
+    if st.session_state.get("calculated"):
+
+     result = st.session_state["result"]
+     data = st.session_state["data"]
+
+    st.header("🎬 Cooling Simulation")
+
+    speed = st.slider("Simulation Speed", 0.1, 1.0, 0.5)
+
+    if st.button("▶ Run Simulation"):
+
+        length = data["length"]
+        width = data["width"]
+        placement = data["placement_1"]
+
+        frames = simulate_cooling(length, width, placement)
+
+        placeholder = st.empty()
+
+        for fig in frames:
+            placeholder.pyplot(fig)
+            time.sleep(speed)
