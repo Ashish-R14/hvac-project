@@ -12,7 +12,6 @@ st.set_page_config(page_title="HVAC Smart System", layout="wide")
 API_URL = "https://hvac-project.onrender.com/calculate"
 
 # ---------------- UTILS ----------------
-
 def generate_key(data):
     return hashlib.md5(str(data).encode()).hexdigest()
 
@@ -21,7 +20,7 @@ def quick_estimate(length, width, people):
     return round(area * 20 + people * 500, 2)
 
 def call_api(data):
-    for _ in range(3):  # retry 3 times
+    for _ in range(3):
         try:
             response = requests.post(API_URL, json=data, timeout=10)
 
@@ -36,7 +35,7 @@ def call_api(data):
 
     return None
 
-# ---------------- CACHE INIT ----------------
+# ---------------- SESSION ----------------
 if "cache" not in st.session_state:
     st.session_state.cache = {}
 
@@ -45,7 +44,7 @@ if "last_click" not in st.session_state:
 
 # ---------------- HEADER ----------------
 st.title("🏢 TAN INNOVATIONS LLP.")
-st.subheader("HVAC Smart Recommendation decision tool ")
+st.subheader("HVAC Smart Recommendation Decision Tool")
 
 st.info("💡 First request may take ~30 sec (server wake-up). Next runs will be instant ⚡")
 
@@ -70,19 +69,27 @@ with col3:
 
 room_type = st.selectbox("Room Type", ["Bedroom", "Living Room", "Office"])
 
+# ---------------- EXTRA FACTORS ----------------
 st.markdown("---")
 
-door_position = st.selectbox(
-    "Door Position",
-    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"]
-)
+colX, colY = st.columns(2)
 
-furniture_density = st.selectbox(
-    "Furniture Density",
-    ["Low", "Medium", "High"]
-)
+with colX:
+    door_position = st.selectbox(
+        "Door Position",
+        ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
+        key="door"
+    )
+
+with colY:
+    furniture_density = st.selectbox(
+        "Furniture Density",
+        ["Low", "Medium", "High"],
+        key="furniture"
+    )
 
 # ---------------- PLACEMENT ----------------
+st.markdown("---")
 st.header("📍 Placement Selection")
 
 col4, col5 = st.columns(2)
@@ -91,27 +98,17 @@ with col4:
     placement_option = st.selectbox(
         "Primary Placement",
         ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
-        key="placement"
+        key="p1"
     )
 
 with col5:
     placement_option_2 = st.selectbox(
         "Compare With",
-        ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"]
+        ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
+        key="p2"
     )
-door_position = st.selectbox(
-    "Door Position",
-    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
-    key="door_position"
-)
 
-furniture_density = st.selectbox(
-    "Furniture Density",
-    ["Low", "Medium", "High"],
-    key="furniture_density"
-)    
-
-# ---------------- CALCULATE ----------------
+# ---------------- BUTTON ----------------
 if st.button("🚀 Calculate"):
 
     now = time.time()
@@ -136,30 +133,28 @@ if st.button("🚀 Calculate"):
         "furniture_density": furniture_density
     }
 
-    # ---------------- INSTANT PREVIEW ----------------
-    st.markdown("### ⚡ Instant Estimate (Preview)")
+    # ---------------- PREVIEW ----------------
+    st.markdown("### ⚡ Instant Estimate")
     quick_btu = quick_estimate(length, width, people)
     st.metric("Estimated Cooling Load", f"{quick_btu} BTU")
 
-    # ---------------- CACHE CHECK ----------------
+    # ---------------- CACHE ----------------
     cache_key = generate_key(data)
 
     if cache_key in st.session_state.cache:
         result = st.session_state.cache[cache_key]
-        st.success("⚡ Loaded instantly from cache")
+        st.success("⚡ Loaded from cache")
 
     else:
-        # ---------------- LOADING EXPERIENCE ----------------
         progress = st.progress(0)
         for i in range(100):
             time.sleep(0.01)
             progress.progress(i + 1)
 
-        # ---------------- API CALL ----------------
         result = call_api(data)
 
         if result is None:
-            st.error("🚫 Server busy. Try again in few seconds.")
+            st.error("🚫 Server busy. Try again.")
             st.stop()
 
         st.session_state.cache[cache_key] = result
@@ -232,38 +227,35 @@ if st.button("🚀 Calculate"):
     ax.set_title("AC Placement Performance")
 
     st.pyplot(fig)
-    
-    # ---------------- INSIGHT ----------------
+
+    # ---------------- VISUALIZATION ----------------
     st.markdown("---")
-st.header("🧊 Room Cooling Visualization")
+    st.header("🧊 Room Cooling Visualization")
 
-colV1, colV2 = st.columns(2)
+    colV1, colV2 = st.columns(2)
 
-with colV1:
-    st.subheader(f"📌 {placement_option}")
-    fig1 = draw_room(length, width, placement_option)
-    st.pyplot(fig1)
+    with colV1:
+        st.subheader(f"📌 {placement_option}")
+        st.pyplot(draw_room(length, width, placement_option))
 
-with colV2:
-    st.subheader(f"📌 {placement_option_2}")
-    fig2 = draw_room(length, width, placement_option_2)
-    st.pyplot(fig2)
+    with colV2:
+        st.subheader(f"📌 {placement_option_2}")
+        st.pyplot(draw_room(length, width, placement_option_2))
+
+    # ---------------- INSIGHT ----------------
     st.markdown("### 🧠 Insight")
-    
-    
+
     if winner != "Both are equal":
         diff = abs(scores[0] - scores[1])
         st.success(f"✅ {winner} is better by {diff} point(s)")
     else:
         st.info("⚖️ Both placements are equal")
-    
-    if 'winner' not in locals():
-        st.stop()
+
     st.metric("🏆 Best Placement", winner)
 
     # ---------------- BEST ----------------
     st.markdown("---")
-    st.header("🔥 Best Placement Recommendation")
+    st.header("🔥 Final Recommendation")
 
     st.success(f"Optimal Placement: {result['best_placement']}")
     st.write(f"Score: {result['score']}/3")
