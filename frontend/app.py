@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import time
 import hashlib
+from visualization import draw_room
 
 # ---------------- CONFIG ----------------
 st.set_page_config(page_title="HVAC Smart System", layout="wide")
@@ -44,7 +45,7 @@ if "last_click" not in st.session_state:
 
 # ---------------- HEADER ----------------
 st.title("🏢 TAN INNOVATIONS LLP.")
-st.subheader("HVAC Smart Recommendation System")
+st.subheader("HVAC Smart Recommendation decision tool ")
 
 st.info("💡 First request may take ~30 sec (server wake-up). Next runs will be instant ⚡")
 
@@ -209,6 +210,20 @@ if st.button("🚀 Calculate"):
     st.pyplot(fig)
 
     # ---------------- INSIGHT ----------------
+    st.markdown("---")
+st.header("🧊 Room Cooling Visualization")
+
+colV1, colV2 = st.columns(2)
+
+with colV1:
+    st.subheader(f"📌 {placement_option}")
+    fig1 = draw_room(length, width, placement_option)
+    st.pyplot(fig1)
+
+with colV2:
+    st.subheader(f"📌 {placement_option_2}")
+    fig2 = draw_room(length, width, placement_option_2)
+    st.pyplot(fig2)
     st.markdown("### 🧠 Insight")
 
     if winner != "Both are equal":
