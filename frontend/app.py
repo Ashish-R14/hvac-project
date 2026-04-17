@@ -1,5 +1,7 @@
 import requests
 import streamlit as st
+import pandas as pd
+import matplotlib.pyplot as plt
 
 # ---------------- CONFIG ----------------
 st.set_page_config(
@@ -115,6 +117,34 @@ if st.button("🚀 Calculate"):
             st.write(p2["verdict"])
             for f in p2["feedback"]:
                 st.write(f"- {f}")
+        
+        st.markdown("---")
+        st.subheader("📊 Placement Comparison Graph")
+       
+        try:
+           p1 = result["comparison"]["placement_1"]
+           p2 = result["comparison"]["placement_2"]
+
+            # Data for graph
+           names = [p1["name"], p2["name"]]
+           scores = [p1["score"], p2["score"]]
+
+           df = pd.DataFrame({
+           "Placement": names,
+           "Score": scores
+           })
+
+    # Plot
+           fig, ax = plt.subplots()
+           ax.bar(df["Placement"], df["Score"])
+           ax.set_xlabel("Placement")
+           ax.set_ylabel("Score")
+           ax.set_title("AC Placement Comparison")
+
+           st.pyplot(fig)
+
+        except Exception as e:
+          st.warning("Graph could not be generated")       
 
         # ---------------- BEST PLACEMENT ----------------
         st.markdown("---")
