@@ -281,17 +281,17 @@ if st.button("🚀 Calculate"):
     st.metric("🏆 Best Placement", winner)
 
     st.markdown("---")
-st.header("🧠 Smart Decision Summary")
+    st.header("🧠 Smart Decision Summary")
 
-colD1, colD2 = st.columns(2)
+    colD1, colD2 = st.columns(2)
 
-with colD1:
-    st.metric("🏆 Recommended Placement", winner)
-    st.metric("📊 Confidence Score", f"{confidence}%")
+    with colD1:
+      st.metric("🏆 Recommended Placement", winner)
+      st.metric("📊 Confidence Score", f"{confidence}%")
 
-with colD2:
-    explanation = generate_explanation(p1, p2, winner)
-    st.markdown(explanation)
+    with colD2:
+      explanation = generate_explanation(p1, p2, winner)
+      st.markdown(explanation)
 
     # ---------------- BEST ----------------
     st.markdown("---")
