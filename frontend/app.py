@@ -276,21 +276,21 @@ if st.button("🚀 Calculate"):
 
     speed = st.slider("Simulation Speed", 0.1, 1.0, 0.5)
 
-    if st.checkbox("▶️ Auto Run Simulation"):
+    if st.button("▶️ Run Simulation"):
 
-     if length == 0 or width == 0:
-        st.warning("Please enter valid room dimensions")
-        st.stop()
+    # 👇 ADD DEBUG HERE
+       st.write("Simulation triggered")
+       st.write("Length:", length)
+       st.write("Width:", width)
+       st.write("Placement:", placement_option)
 
-     with st.spinner("Running simulation..."):
+       frames = simulate_cooling(length, width, placement_option)
 
-        frames = simulate_cooling(length, width, placement_option)
+       placeholder = st.empty()
 
-        placeholder = st.empty()
-
-        for fig in frames:
-            placeholder.pyplot(fig)
-            time.sleep(speed)
+       for fig in frames:
+        placeholder.pyplot(fig)
+        time.sleep(speed)
 
     # ---------------- INSIGHT ----------------
     st.markdown("### 🧠 Insight")
