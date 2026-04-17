@@ -91,7 +91,7 @@ with col4:
     placement_option = st.selectbox(
         "Primary Placement",
         ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
-        key="placement2"
+        key="placement"
     )
 
 with col5:
@@ -99,6 +99,17 @@ with col5:
         "Compare With",
         ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"]
     )
+door_position = st.selectbox(
+    "Door Position",
+    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
+    key="door_position"
+)
+
+furniture_density = st.selectbox(
+    "Furniture Density",
+    ["Low", "Medium", "High"],
+    key="furniture_density"
+)    
 
 # ---------------- CALCULATE ----------------
 if st.button("🚀 Calculate"):
@@ -221,7 +232,7 @@ if st.button("🚀 Calculate"):
     ax.set_title("AC Placement Performance")
 
     st.pyplot(fig)
-
+    
     # ---------------- INSIGHT ----------------
     st.markdown("---")
 st.header("🧊 Room Cooling Visualization")
@@ -238,13 +249,16 @@ with colV2:
     fig2 = draw_room(length, width, placement_option_2)
     st.pyplot(fig2)
     st.markdown("### 🧠 Insight")
-
+    
+    
     if winner != "Both are equal":
         diff = abs(scores[0] - scores[1])
         st.success(f"✅ {winner} is better by {diff} point(s)")
     else:
         st.info("⚖️ Both placements are equal")
-
+    
+    if 'winner' not in locals():
+        st.stop()
     st.metric("🏆 Best Placement", winner)
 
     # ---------------- BEST ----------------
@@ -256,15 +270,3 @@ with colV2:
 
     for f in result["feedback"]:
         st.write(f"- {f}")
-
-door_position = st.selectbox(
-    "Door Position",
-    ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
-    key="door_position"
-)
-
-furniture_density = st.selectbox(
-    "Furniture Density",
-    ["Low", "Medium", "High"],
-    key="furniture_density"
-)
