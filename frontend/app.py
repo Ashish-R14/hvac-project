@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import time 
 
 # ---------------- CONFIG ----------------
 st.set_page_config(
@@ -55,9 +56,19 @@ with col5:
         ["Top Wall", "Bottom Wall", "Left Wall", "Right Wall"],
         key="placement2"
     )
+# Prevent spam clicks
+if "last_click" not in st.session_state:
+    st.session_state.last_click = 0
 
 # ---------------- CALCULATE ----------------
 if st.button("🚀 Calculate"):
+    now = time.time()
+
+    if now - st.session_state.last_click < 5:
+        st.warning("⚠️ Please wait before trying again...")
+        st.stop()
+
+    st.session_state.last_click = now
 
     data = {
         "length": length,
@@ -72,10 +83,15 @@ if st.button("🚀 Calculate"):
     }
 
     try:
-        response = requests.post(API_URL, json=data, timeout=60)
+        with st.spinner("⚙️ Calculating optimal cooling..."):
+            response = requests.post(API_URL, json=data, timeout=10)
+
+        if response.status_code == 429:
+            st.error("🚫 Server is busy. Please wait.")
+            st.stop()
 
         if response.status_code != 200:
-            st.error(f"❌ Backend Error: {response.text}")
+            st.error(f"Backend error: {response.text}")
             st.stop()
 
         result = response.json()
@@ -117,91 +133,61 @@ if st.button("🚀 Calculate"):
             st.write(p2["verdict"])
             for f in p2["feedback"]:
                 st.write(f"- {f}")
-        
+
+        # ---------------- GRAPH ----------------
         st.markdown("---")
         st.subheader("📊 Placement Comparison Graph")
-       
-        try:
-            p1 = result["comparison"]["placement_1"]
-            p2 = result["comparison"]["placement_2"]
- 
-            names = [p1["name"], p2["name"]]
-            scores = [p1["score"], p2["score"]]
 
-    # Determine winner
-            if scores[0] > scores[1]:
-               colors = ["green", "red"]
-               winner = p1["name"]
-            elif scores[1] > scores[0]:
-                 colors = ["red", "green"]
-                 winner = p2["name"]
-            else:
-                 colors = ["gray", "gray"]
-                 winner = "Both are equal"
+        names = [p1["name"], p2["name"]]
+        scores = [p1["score"], p2["score"]]
 
-            df = pd.DataFrame({
-                "Placement": names,
-                "Score": scores
-                 })
+        if scores[0] > scores[1]:
+            colors = ["green", "red"]
+            winner = p1["name"]
+        elif scores[1] > scores[0]:
+            colors = ["red", "green"]
+            winner = p2["name"]
+        else:
+            colors = ["gray", "gray"]
+            winner = "Both are equal"
 
-            fig, ax = plt.subplots()
+        df = pd.DataFrame({"Placement": names, "Score": scores})
 
-            bars = ax.barh(df["Placement"], df["Score"], color=colors)
+        fig, ax = plt.subplots()
+        ax.barh(df["Placement"], df["Score"], color=colors)
 
-    # Add value labels
-            for i, v in enumerate(scores):
-                ax.text(v + 0.05, i, str(v), va='center', fontweight='bold')
+        for i, v in enumerate(scores):
+            ax.text(v + 0.05, i, str(v), va='center', fontweight='bold')
 
-                ax.set_xlim(0, 3)
-                ax.set_xlabel("Efficiency Score")
-                ax.set_title("AC Placement Performance Comparison")
+        ax.set_xlim(0, 3)
+        ax.set_xlabel("Efficiency Score")
+        ax.set_title("AC Placement Performance Comparison")
 
-                st.pyplot(fig)
+        st.pyplot(fig)
 
-    # 📌 Insight section (this is what makes it powerful)
-                st.markdown("### 🧠 Insight")
+        # ---------------- INSIGHTS ----------------
+        st.markdown("### 🧠 Insight")
 
-            if winner != "Both are equal":
-                diff = abs(scores[0] - scores[1])
-                st.success(f"✅ **{winner} is the better placement by {diff} point(s)**")
-            else:
-                st.info("⚖️ Both placements perform equally. Choose based on room layout.")
+        if winner != "Both are equal":
+            diff = abs(scores[0] - scores[1])
+            st.success(f"✅ **{winner} is better by {diff} point(s)**")
+        else:
+            st.info("⚖️ Both placements are equal")
 
-    # Show quick reasoning
-                st.markdown("### 🔍 Key Differences")
+        st.metric("🏆 Best Placement", winner)
 
-                colA, colB = st.columns(2)
-
-            with colA:
-                st.markdown(f"**{p1['name']}**")
-            for f in p1["feedback"]:
-                st.write(f"• {f}")
-
-            with colB:
-                st.markdown(f"**{p2['name']}**")
-            for f in p2["feedback"]:
-                st.write(f"• {f}")
-
-        except Exception as e:
-            st.warning("Graph could not be generated")       
-        st.metric(
-           label="🏆 Best Placement",
-           value=winner
-)
         # ---------------- BEST PLACEMENT ----------------
         st.markdown("---")
         st.header("🔥 Best Placement Recommendation")
 
         st.success(f"Optimal Placement: {result['best_placement']}")
-
         st.write(f"Score: {result['score']}/3")
 
-        st.write("Why this works:")
         for f in result["feedback"]:
             st.write(f"- {f}")
 
     except requests.exceptions.Timeout:
-        st.error("⏱️ Server timeout. Try again.")
+        st.warning("⏳ Server is waking up. Try again.")
 
     except Exception as e:
         st.error(f"⚠️ Error connecting to API: {e}")
